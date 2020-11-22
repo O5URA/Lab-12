@@ -10,12 +10,17 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.lab12.Database.MessageDBHandler;
+import com.example.lab12.Database.MessageMaster;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,8 +29,10 @@ public class StudentActivity extends AppCompatActivity {
 
     private RecyclerView studentMessagesRecyclerView;
     private TextView welcomeNote;
-    private MessageAdapter mMessageAdapter;
     private Bundle mBundle;
+    private ListView messageList;
+    private ArrayList<String> listItem;
+    ArrayAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,19 +41,40 @@ public class StudentActivity extends AppCompatActivity {
 
         MessageDBHandler dbHandler = new MessageDBHandler(this);
         mBundle = getIntent().getExtras();
-
-        studentMessagesRecyclerView = findViewById(R.id.message_list);
+        messageList = findViewById(R.id.message_list);
         welcomeNote = findViewById(R.id.welcome_student);
 
         String note= "Welcome, " + mBundle.getString("name");
 
         welcomeNote.setText(note);
 
-        studentMessagesRecyclerView.setHasFixedSize(true);
-        studentMessagesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        mMessageAdapter = new MessageAdapter(this, dbHandler.getAllMessages());
+        listItem = new ArrayList<>();
 
-        studentMessagesRecyclerView.setAdapter(mMessageAdapter);
+        Cursor cursor = dbHandler.getAllMessages();
+
+        if (cursor.getCount() > 0) {
+            while (cursor.moveToNext()) {
+                String teacherName = cursor.getString(cursor.getColumnIndexOrThrow(MessageMaster.Messages.COLUMN_TEACHER_NAME));
+                String subject = cursor.getString(cursor.getColumnIndexOrThrow(MessageMaster.Messages.COLUMN_SUBJECT));
+                String mess = cursor.getString(cursor.getColumnIndexOrThrow(MessageMaster.Messages.COLUMN_MESSAGE));
+                String item = teacherName + "\n" + subject + "\n" + mess;
+                listItem.add(item);
+            }
+            adapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, listItem);
+            messageList.setAdapter(adapter);
+        } else {
+            Toast.makeText(getApplicationContext(), "There is no messages", Toast.LENGTH_LONG).show();
+        }
+
+        messageList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                String text = messageList.getItemAtPosition(i).toString();
+                Intent intent = new Intent(StudentActivity.this, MessageActivity.class);
+                intent.putExtra("item", text);
+                startActivity(intent);
+            }
+        });
 
         // Notification settings
 

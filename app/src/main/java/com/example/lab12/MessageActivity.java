@@ -11,6 +11,7 @@ public class MessageActivity extends AppCompatActivity {
     private TextView subjectName;
     private TextView message;
     private Bundle mBundle;
+    private String mess;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -21,7 +22,12 @@ public class MessageActivity extends AppCompatActivity {
         subjectName = findViewById(R.id.sub_name);
         message = findViewById(R.id.msg);
 
-        subjectName.setText(mBundle.getString("subject_name"));
-        message.setText(mBundle.getString("message"));
+        mess = mBundle.getString("item");
+        String[] arrayList = mess.split("\n");
+        String subName = arrayList[1];
+        String meg = arrayList[2];
+//        System.out.println("This is message activity " + arrayList[0]);
+        subjectName.setText(subName);
+        message.setText(meg);
     }
 }
